@@ -1,0 +1,66 @@
+import {Canvas, Meta, Primary, Source, Story, Subtitle} from '@storybook/blocks';
+import DraggableSource from './Dropzone/Draggable.tsx?raw'
+import DropZoneSource from './Dropzone/Dropzone.tsx?raw'
+import * as DropzoneStories from './Dropzone.stories.tsx';
+
+<Meta title="DropZone" />
+
+# DropZone
+
+The basics of drag and drop within React can actually be handled fairly easily with the native drag and drop API.
+The primary concept to understand is the DataTransfer object. Utilizing this well allows us to have a performant
+and abstract way of decoupling the drag source and drop destination. In addition, by utilizing the
+[DataTransfer.setDragImage()](https://developer.mozilla.org/en-US/docs/Web/API/DataTransfer/setDragImage) method,
+we can set a custom dragged image that follows the cursor without needing to track mouse movements or offsets.
+
+## DataTransfer Data Types
+
+Utilizing the DataTransfer's concept of data types in MIME format, we can quite easily have a decoupled system
+where the drag source and drop destination don't need to know about each other. This can be demonstrated by the
+concept of allowing a user to drag an image onto your app. Some drop zones might support an image file, but will upload
+the image on drop, while others might display the image with cropping controls. The dropzones have no connection with
+the original drag location, which could even be from outside the application. All the dropzones need to do is inform
+the DragEvent they support the data type currently being dropped.
+
+Taking this concept further, we can create our own data types to indicate that a dragged item is of a specific type,
+and any drop zones that support that type can accept the drop. In order to accomplish this in a consistent and
+standards compliant way, we utilize the `vnd` or `prs` [MIME subtype](https://en.wikipedia.org/wiki/Media_type#Subtypes),
+with the `+json` suffix. This allows us to define our own data types in a way that is unlikely to conflict with other
+data types, and is easily recognizable as a custom data type.
+
+For example, we might define a TODO item data type as `application/prs.my-app.todo+json`, which would have the following
+schema:
+
+```json
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "string"
+}
+```
+
+And now, in our TODO app, when the user starts dragging a Todo item, we can set the data of the drag event like so:
+
+```typescript
+import {DragEvent} from "react";
+
+function handleDragStart(event: DragEvent) {
+  event.dataTransfer.setData('application/prs.my-app.todo+json', JSON.stringify('8c511d7c-1cc7-4da9-9baa-189c5037490b'));
+}
+```
+
+## Example
+<Canvas of={DropzoneStories.SimpleCopy} sourceState='none'/>
+
+<Subtitle>Draggable Component</Subtitle>
+<Source
+    language='tsx'
+    format={false}
+    code={DraggableSource}
+/>
+
+<Subtitle>DropZone Component</Subtitle>
+<Source
+    language='tsx'
+    format={false}
+    code={DropZoneSource}
+/>
